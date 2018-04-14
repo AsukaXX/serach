@@ -4,6 +4,7 @@
 #include<string>
 #include<vector>
 #include<map>
+#include<algorithm>
 #include<io.h>
 using namespace std;
 
@@ -20,4 +21,5 @@ similpath_v countsimil(const sum_m sum);
 inline int inttostring(const string ss);
 sum_m readsum(const string path);
 similpath_v similpath(const similpath_v s_path);
-void cos_simil(const sum_m& p1, const sum_m& p2);
+double cos_simil(const sum_m& p1, const sum_m& p2,const similpath_v_e path);
+ostream& print(const similpath_v_e path, const double count,ostream& os);

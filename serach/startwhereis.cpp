@@ -193,6 +193,7 @@ sum_m readsum(const string path) {
 similpath_v similpath(const similpath_v s_path) {
 	sum_m path1, path2;
 	similpath_v similpath_2;
+	double simil=0.0;
 	for (similpath_v_e s_e : s_path) {
 		path1 = readsum(s_e.first);
 		path2 = readsum(s_e.second);
@@ -208,18 +209,55 @@ similpath_v similpath(const similpath_v s_path) {
 			}
 			if ((double)(s_t / (path1.size() > path2.size() ? path1.size() : path2.size())) > 0.79f) {
 				similpath_2.push_back(s_e);
-				cos_simil(path1,path2);
+				simil=cos_simil(path1,path2,s_e);
 			}
+			if (simil > 0.79f)
+				print(s_e,simil,cout);
 		}
 	}
 	return similpath_2;
 }
 
-void cos_simil(const sum_m& p1,const sum_m& p2) {
-	ifstream c_fs;
-	
-	string f_n;
+ostream& print(const similpath_v_e path, const double count, ostream& os) {
+	os << path.first << " " << path.second << " " << count << endl;
+	return os;
+}
 
+double cos_simil(const sum_m& p1,const sum_m& p2,const similpath_v_e path) {
+	ifstream c_fs;
+	string f_n;
+	int c_s = 0, f_s = 0;
+	double	c_f=0.0;
+	vector<string> st1, st2;
+	vector<string>::iterator s;
+	sum_m::const_iterator p_n;
+	for (sum_m_e p_c : p1) {
+		c_s = 0;
+		p_n = p2.find(p_c.first);
+		if (p_n != p2.end()) {
+			c_fs.open(path.first + "\\sort\\" + p_c.first + ".txt");
+			while (getline(c_fs, f_n)) {
+				st1.push_back(f_n);
+			}
+			c_fs.close();
+			c_fs.open(path.second + "\\sort\\" + p_c.first + ".txt");
+			while (getline(c_fs, f_n)) {
+				s = find(st1.begin(), st1.end(), f_n);
+				if (s != st1.end()) {
+					st2.push_back(f_n);
+				}
+				++c_s;
+			}
+			c_fs.close();
+			if ((double)(st2.size() / (st1.size() > c_s ? st1.size() : c_s)) > 0.79f)
+				++f_s;
+		}
+	}
+	c_f = (double)(f_s / (p1.size() > p2.size() ? p1.size() : p2.size()));
+	if (c_f > 0.79f)
+		return c_f;
+	else
+		return -1.0;
 }
 
 int main() {

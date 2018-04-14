@@ -1,14 +1,4 @@
-#include<iostream>
-#include<fstream>
-#include<string>
-#include<vector>
-#include<map>
-#include<io.h>
-using namespace std;
-
-using similpath_v=vector< pair<string, string>>;
-using sum_m = map<string, int>;
-using similpath_v_e = pair<string, string>;
+#include"search.h"
 
 void getDirectory(const string path, vector<string>& dir) {
 	long hfile;
@@ -94,7 +84,6 @@ sum_m sortWord(const vector<string> dir) {
 	sortmap["4499"] = class_name;
 
 	for (string st : dir) {
-		using sum_m_e = pair<string, int>;
 		sum_m count;
 		sum_m::iterator co_it;
 		cdir = "md "+st+ "\\sort";
@@ -173,35 +162,78 @@ similpath_v countsimil(const sum_m sum) {
 			s2 = s_it2->second;
 			s2 > s1 ? si = (double) s1 / s2 : si = (double) s2 / s1;
 			cout << s1 << " " << s2 << " " << si << endl;
-			if (si > 0.79 && s1 < 1.0)
+			if (si > 0.79f && s1 < 1.1f)
 				similpath.push_back(similpath_v_e(path_m, s_it2->first));
 		}
 	}
 	return similpath;
 }
 
-void similpath(const similpath_v s_path) {
-	sum_m path1, path2;
-	ifstream count_f;
-	for (similpath_v_e s_e : s_path) {
-		count_f.open(s_e.first + "\\sort\\count.txt");
-		string line, c_name, c_sum;
-		while (getline(count_f, line)) {
+inline int inttostring(const string ss) {
+	stringstream str_m(ss);
+	int i = 0;
+	str_m >> i;
+	return i;
+}
 
+sum_m readsum(const string path) {
+	sum_m e_path;
+	ifstream count_f;
+	count_f.open(path + "\\sort\\count.txt");
+	string line, c_name, c_sum;
+	while (getline(count_f, line)) {
+		int i = line.rfind("\t");
+		c_name = line.substr(0, i);
+		c_sum = line.substr(i + 1, line.size());
+		e_path.insert(sum_m_e(c_name, inttostring(c_sum)));
+	}
+	return e_path;
+}
+
+similpath_v similpath(const similpath_v s_path) {
+	sum_m path1, path2;
+	similpath_v similpath_2;
+	for (similpath_v_e s_e : s_path) {
+		path1 = readsum(s_e.first);
+		path2 = readsum(s_e.second);
+		if ((path1.size() > path2.size() ? path1.size() - path2.size() : path2.size() - path1.size()) < 3) {
+			int s_t = 0;
+			for (sum_m_e p_e : path1) {
+				sum_m::iterator p_e2 = path2.find(p_e.first);
+				if (p_e2 != path2.end()) {
+					double s = (double)(p_e.second > p_e2->second ? p_e2->second / p_e.second : p_e.second / p_e2->second);
+					if (s > 0.79f)
+						++s_t;
+				}
+			}
+			if ((double)(s_t / (path1.size() > path2.size() ? path1.size() : path2.size())) > 0.79f) {
+				similpath_2.push_back(s_e);
+				cos_simil(path1,path2);
+			}
 		}
 	}
+	return similpath_2;
+}
+
+void cos_simil(const sum_m& p1,const sum_m& p2) {
+	ifstream c_fs;
+	
+	string f_n;
+
 }
 
 int main() {
 	string findPath;
 	vector<string> scanDir;
 	sum_m sum_map;
-	similpath_v similPath;
+	similpath_v similPath,similPath_2;
 	cin >> findPath;
 	getDirectory(findPath, scanDir);
 	searchFile(scanDir, findPath);
 	sum_map = sortWord(scanDir);
 	similPath = countsimil(sum_map);
+	if (similPath.size() != 0)
+		similPath_2 = similpath(similPath);
 	
 	return 0;
 }

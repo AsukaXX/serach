@@ -1,14 +1,23 @@
 #include"search.h"
 
-void getDirectory(const string path, vector<string>& dir) {
+void getDirectory(const string path, vector<string>& dir,const int flag=0) {
 	long hfile;
 	static _finddata_t fileinfo;
 	string p;
+	//regex r("[.]*+.cpp");
 	if ((hfile = _findfirst(p.assign(path).append("\\*").c_str(), &fileinfo)) != -1) {
 		do {
-			if (fileinfo.attrib == _A_SUBDIR) {
-				if (strcmp(fileinfo.name, ".") != 0 && strcmp(fileinfo.name, "..") != 0) {
-					dir.push_back(p.assign(path).append("\\").append(fileinfo.name));
+			if (flag == 0) {
+				if (fileinfo.attrib == _A_SUBDIR) {
+					if (strcmp(fileinfo.name, ".") != 0 && strcmp(fileinfo.name, "..") != 0) {
+						dir.push_back(p.assign(path).append("\\").append(fileinfo.name));
+					}
+				}
+			}
+			if (flag == 1) {
+				if (fileinfo.attrib != _A_SUBDIR) {
+					if (strcmp(fileinfo.name,"[*.cpp]") == 1)
+						dir.push_back(path + "\\" + fileinfo.name);
 				}
 			}
 		} while (_findnext(hfile, &fileinfo) == 0);
@@ -155,14 +164,14 @@ similpath_v countsimil(const sum_m sum) {
 	int s1 = 0, s2 = 0;
 	double si=0.00;
 	s_it1 = sum.begin();
-	for (; s_it1 != sum.end(); s_it1++) {
+	for (; s_it1 != sum.end(); ) {
 		path_m = s_it1->first;
 		s1 = s_it1->second;
 		for (s_it2 = ++s_it1; s_it2 != sum.end(); s_it2++) {
 			s2 = s_it2->second;
-			s2 > s1 ? si = (double) s1 / s2 : si = (double) s2 / s1;
+			si=(double)(s2 > s1 ? s1 / s2 : s2 / s1);
 			cout << s1 << " " << s2 << " " << si << endl;
-			if (si > 0.79f && s1 < 1.1f)
+			if (si > 0.79f)
 				similpath.push_back(similpath_v_e(path_m, s_it2->first));
 		}
 	}
@@ -182,7 +191,7 @@ sum_m readsum(const string path) {
 	count_f.open(path + "\\sort\\count.txt");
 	string line, c_name, c_sum;
 	while (getline(count_f, line)) {
-		int i = line.rfind("\t");
+		int i = line.rfind(" ");
 		c_name = line.substr(0, i);
 		c_sum = line.substr(i + 1, line.size());
 		e_path.insert(sum_m_e(c_name, inttostring(c_sum)));
@@ -193,6 +202,7 @@ sum_m readsum(const string path) {
 similpath_v similpath(const similpath_v s_path) {
 	sum_m path1, path2;
 	similpath_v similpath_2;
+	vector<string> sameword;
 	double simil=0.0;
 	for (similpath_v_e s_e : s_path) {
 		path1 = readsum(s_e.first);
@@ -209,7 +219,7 @@ similpath_v similpath(const similpath_v s_path) {
 			}
 			if ((double)(s_t / (path1.size() > path2.size() ? path1.size() : path2.size())) > 0.79f) {
 				similpath_2.push_back(s_e);
-				simil=cos_simil(path1,path2,s_e);
+				simil=cos_simil(path1,path2,s_e,sameword);
 			}
 			if (simil > 0.79f)
 				print(s_e,simil,cout);
@@ -220,15 +230,21 @@ similpath_v similpath(const similpath_v s_path) {
 
 ostream& print(const similpath_v_e path, const double count, ostream& os) {
 	os << path.first << " " << path.second << " " << count << endl;
+	vector<string> filepath;
+	getDirectory(path.first, filepath, 1);
+	for (string t : filepath)
+		cout << t << endl;
 	return os;
 }
 
-double cos_simil(const sum_m& p1,const sum_m& p2,const similpath_v_e path) {
+
+
+double cos_simil(const sum_m& p1,const sum_m& p2,const similpath_v_e& path,vector<string> sameword) {
 	ifstream c_fs;
 	string f_n;
 	int c_s = 0, f_s = 0;
 	double	c_f=0.0;
-	vector<string> st1, st2;
+	vector<string> st1;
 	vector<string>::iterator s;
 	sum_m::const_iterator p_n;
 	for (sum_m_e p_c : p1) {
@@ -244,12 +260,12 @@ double cos_simil(const sum_m& p1,const sum_m& p2,const similpath_v_e path) {
 			while (getline(c_fs, f_n)) {
 				s = find(st1.begin(), st1.end(), f_n);
 				if (s != st1.end()) {
-					st2.push_back(f_n);
+					sameword.push_back(f_n);
 				}
 				++c_s;
 			}
 			c_fs.close();
-			if ((double)(st2.size() / (st1.size() > c_s ? st1.size() : c_s)) > 0.79f)
+			if ((double)(sameword.size() / (st1.size() > c_s ? st1.size() : c_s)) > 0.79f)
 				++f_s;
 		}
 	}

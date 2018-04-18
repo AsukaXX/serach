@@ -67,7 +67,7 @@ void path(string dir) {
 sum_m sortWord(const vector<string> dir) {
 	ifstream fs;
 	ofstream fsi;
-	string s1, s2, line,cdir;
+	string s1, s2, line, cdir, rdir;
 	enum sort {
 		start,
 		class_name,
@@ -95,6 +95,8 @@ sum_m sortWord(const vector<string> dir) {
 	for (string st : dir) {
 		sum_m count;
 		sum_m::iterator co_it;
+		rdir = "rmdir /s/q " + st + "\\sort";
+		system(rdir.c_str());
 		cdir = "md "+st+ "\\sort";
 		system(cdir.c_str());
 		fs.open(st + "\\symbols.txt");
@@ -136,18 +138,18 @@ sum_m sortWord(const vector<string> dir) {
 			fsi.open(st +"\\sort"+"\\"+ s2 + ".txt",ios::app);
 			fsi << s1 << endl;
 			co_it = count.find(s2);
-			if (co_it == count.end())
-				count.insert(sum_m_e(s2, 1));
-			else
-				co_it->second++;
-			fsi.close();
+if (co_it == count.end())
+count.insert(sum_m_e(s2, 1));
+else
+co_it->second++;
+fsi.close();
 		}
 		fs.close();
 		cout << st << " sort finished!" << endl;
 		int sum = 0;
-		fsi.open(st + "\\sort\\count.txt",ios::trunc);
+		fsi.open(st + "\\sort\\count.txt", ios::trunc);
 		for (sum_m_e i : count) {
-			fsi << i.first<<" "<<i.second << endl;
+			fsi << i.first << " " << i.second << endl;
 			sum += i.second;
 		}
 		fsi.close();
@@ -158,18 +160,18 @@ sum_m sortWord(const vector<string> dir) {
 }
 
 similpath_v countsimil(const sum_m sum) {
-	sum_m::const_iterator s_it1,s_it2;
+	sum_m::const_iterator s_it1, s_it2;
 	similpath_v similpath;
 	string path_m;
 	int s1 = 0, s2 = 0;
-	double si=0.00;
+	double si = 0.00;
 	s_it1 = sum.begin();
 	for (; s_it1 != sum.end(); ) {
 		path_m = s_it1->first;
 		s1 = s_it1->second;
 		for (s_it2 = ++s_it1; s_it2 != sum.end(); s_it2++) {
 			s2 = s_it2->second;
-			si=(double)(s2 > s1 ? s1 / s2 : s2 / s1);
+			si = (double)(s2 > s1 ? s1 / s2 : s2 / s1);
 			cout << s1 << " " << s2 << " " << si << endl;
 			if (si > 0.79f)
 				similpath.push_back(similpath_v_e(path_m, s_it2->first));
@@ -202,8 +204,8 @@ sum_m readsum(const string path) {
 similpath_v similpath(const similpath_v s_path) {
 	sum_m path1, path2;
 	similpath_v similpath_2;
-	vector<string> sameword;
-	double simil=0.0;
+	set<string> sameword;
+	double simil = 0.0;
 	for (similpath_v_e s_e : s_path) {
 		path1 = readsum(s_e.first);
 		path2 = readsum(s_e.second);
@@ -219,33 +221,121 @@ similpath_v similpath(const similpath_v s_path) {
 			}
 			if ((double)(s_t / (path1.size() > path2.size() ? path1.size() : path2.size())) > 0.79f) {
 				similpath_2.push_back(s_e);
-				simil=cos_simil(path1,path2,s_e,sameword);
+				simil = cos_simil(path1, path2, s_e, sameword);
 			}
 			if (simil > 0.79f)
-				print(s_e,simil,cout);
+				print(s_e, simil, cout, sameword);
+				//cout << simil << endl;
 		}
 	}
+	//for (string s : sameword)
+		//cout << s << endl;
 	return similpath_2;
 }
 
-ostream& print(const similpath_v_e path, const double count, ostream& os) {
+ostream& print(const similpath_v_e path, const double count, ostream& os, const set<string> word) {
 	os << path.first << " " << path.second << " " << count << endl;
-	vector<string> filepath;
-	getDirectory(path.first, filepath, 1);
-	for (string t : filepath)
-		cout << t << endl;
+	vector<string> filepath1, filepath2;
+	ifstream f_c1, f_c2;
+	getDirectory(path.first, filepath1, 1);
+	getDirectory(path.second, filepath2, 1);
+	f_c1.open(*filepath1.begin());
+	f_c2.open(*filepath2.begin());
+	for(string w : word){
+		cout << w << ":" << endl;
+		int size = w.size();
+		string line;
+		while (getline(f_c1, line)) {
+			int i = line.find(w);
+			if (i != string::npos) {
+				if(judgestring(line,i,size))
+					cout << line << endl;
+			}
+		}
+		while (getline(f_c2, line)) {
+			int j = line.find(w);
+			if (j != string::npos) {
+				if (judgestring(line, j, size))
+					cout << line << endl;
+			}
+		}
+		f_c1.clear();
+		f_c1.seekg(0, ios::beg);
+		f_c2.clear();
+		f_c2.seekg(0, ios::beg);
+}
 	return os;
 }
 
+bool judgestring(string s, const int i, const int size) {
+	string l, r;
+	if (i == 0)
+		r = s.substr(i + size, 1);
+	else {
+		l = s.substr(i - 1, 1);
+		r = s.substr(i + size, 1);
+	}
+	//cout << s.substr(i - 1, i) << *r << endl;
+	if(l.size()!=0)
+		switch (l[0]) {
+		case'<':
+			break;
+		case' ':
+			break;
+		case'&':
+			break;
+		case'*':
+			break;
+		case'\t':
+			break;
+		case'=':
+			break;
+		case',':
+			break;
+		case'#':
+			break;
+		case':':
+			break;
+		case'"':
+			break;
+		default:
+			return 0;
+		}
+	switch (r[0]) {
+	case'<':
+		return 1;
+	case'>':
+		return 1;
+	case'=':
+		return 1;
+	case';':
+		return 1;
+	case' ':
+		return 1;
+	case'(':
+		return 1;
+	case':':
+		return 1;
+	case')':
+		return 1;
+	case',':
+		return 1;
+	case'"':
+		return 1;
+	case'{':
+		return 1;
+	default:
+		return 0;
+	}
+}
 
-
-double cos_simil(const sum_m& p1,const sum_m& p2,const similpath_v_e& path,vector<string> sameword) {
+double cos_simil(const sum_m& p1,const sum_m& p2,const similpath_v_e& path,set<string>& sameword) {
 	ifstream c_fs;
 	string f_n;
 	int c_s = 0, f_s = 0;
 	double	c_f=0.0;
-	vector<string> st1;
-	vector<string>::iterator s;
+	set<string> st1;
+	set<string>::iterator s;
 	sum_m::const_iterator p_n;
 	for (sum_m_e p_c : p1) {
 		c_s = 0;
@@ -253,14 +343,14 @@ double cos_simil(const sum_m& p1,const sum_m& p2,const similpath_v_e& path,vecto
 		if (p_n != p2.end()) {
 			c_fs.open(path.first + "\\sort\\" + p_c.first + ".txt");
 			while (getline(c_fs, f_n)) {
-				st1.push_back(f_n);
+				st1.insert(f_n);
 			}
 			c_fs.close();
 			c_fs.open(path.second + "\\sort\\" + p_c.first + ".txt");
 			while (getline(c_fs, f_n)) {
 				s = find(st1.begin(), st1.end(), f_n);
 				if (s != st1.end()) {
-					sameword.push_back(f_n);
+					sameword.insert(f_n);
 				}
 				++c_s;
 			}
@@ -268,6 +358,7 @@ double cos_simil(const sum_m& p1,const sum_m& p2,const similpath_v_e& path,vecto
 			if ((double)(sameword.size() / (st1.size() > c_s ? st1.size() : c_s)) > 0.79f)
 				++f_s;
 		}
+		st1.clear();
 	}
 	c_f = (double)(f_s / (p1.size() > p2.size() ? p1.size() : p2.size()));
 	if (c_f > 0.79f)

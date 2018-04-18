@@ -4,6 +4,7 @@
 #include<string>
 #include<vector>
 #include<map>
+#include<set>
 #include<algorithm>
 #include<regex>
 #include<io.h>
@@ -22,6 +23,6 @@ similpath_v countsimil(const sum_m sum);
 inline int inttostring(const string ss);
 sum_m readsum(const string path);
 similpath_v similpath(const similpath_v s_path);
-double cos_simil(const sum_m& p1, const sum_m& p2,const similpath_v_e& path,vector<string> sameword);
-ostream& print(const similpath_v_e path, const double count,ostream& os);
-void findtext();
+double cos_simil(const sum_m& p1, const sum_m& p2,const similpath_v_e& path,set<string>& sameword);
+ostream& print(const similpath_v_e path, const double count,ostream& os,const set<string> word);
+bool judgestring(string s, const int i, const int size);

@@ -15,7 +15,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="startwhereis.cpp">
+    <ClCompile Include="serach.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

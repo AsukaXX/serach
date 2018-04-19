@@ -146,7 +146,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="serach.cpp" />
+    <ClCompile Include="Getdirctory.cpp" />
+    <ClCompile Include="Priantresult.cpp" />
+    <ClCompile Include="Searchid.cpp" />
+    <ClCompile Include="Searchmain.cpp" />
+    <ClCompile Include="Simil_count.cpp" />
+    <ClCompile Include="Simil_fuction.cpp" />
+    <ClCompile Include="Sortid.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="search.h" />
